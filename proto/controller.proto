@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package controller;
+
+option go_package = "github.com/rhythmicsoul/nginx-mgmt/proto/controller";
+
+message AgentToken {
+    string token = 1;
+}
+
+service AddService {
+    rpc NewAgentToken(google.protobuf.Empty) returns (AgentToken);
+}
