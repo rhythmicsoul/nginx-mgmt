@@ -10,6 +10,8 @@ message AgentToken {
     string token = 1;
 }
 
+message Empty {}
+
 service AddService {
-    rpc NewAgentToken(google.protobuf.Empty) returns (AgentToken);
+    rpc NewAgentToken(Empty) returns (AgentToken);
 }

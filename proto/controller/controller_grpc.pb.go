@@ -4,7 +4,6 @@ package controller
 
 import (
 	context "context"
-	empty "github.com/golang/protobuf/ptypes/empty"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -19,7 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AddServiceClient interface {
-	NewAgentToken(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*AgentToken, error)
+	NewAgentToken(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AgentToken, error)
 }
 
 type addServiceClient struct {
@@ -30,7 +29,7 @@ func NewAddServiceClient(cc grpc.ClientConnInterface) AddServiceClient {
 	return &addServiceClient{cc}
 }
 
-func (c *addServiceClient) NewAgentToken(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*AgentToken, error) {
+func (c *addServiceClient) NewAgentToken(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AgentToken, error) {
 	out := new(AgentToken)
 	err := c.cc.Invoke(ctx, "/controller.AddService/NewAgentToken", in, out, opts...)
 	if err != nil {
@@ -43,7 +42,7 @@ func (c *addServiceClient) NewAgentToken(ctx context.Context, in *empty.Empty, o
 // All implementations must embed UnimplementedAddServiceServer
 // for forward compatibility
 type AddServiceServer interface {
-	NewAgentToken(context.Context, *empty.Empty) (*AgentToken, error)
+	NewAgentToken(context.Context, *Empty) (*AgentToken, error)
 	mustEmbedUnimplementedAddServiceServer()
 }
 
@@ -51,7 +50,7 @@ type AddServiceServer interface {
 type UnimplementedAddServiceServer struct {
 }
 
-func (UnimplementedAddServiceServer) NewAgentToken(context.Context, *empty.Empty) (*AgentToken, error) {
+func (UnimplementedAddServiceServer) NewAgentToken(context.Context, *Empty) (*AgentToken, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method NewAgentToken not implemented")
 }
 func (UnimplementedAddServiceServer) mustEmbedUnimplementedAddServiceServer() {}
@@ -68,7 +67,7 @@ func RegisterAddServiceServer(s grpc.ServiceRegistrar, srv AddServiceServer) {
 }
 
 func _AddService_NewAgentToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(empty.Empty)
+	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -80,7 +79,7 @@ func _AddService_NewAgentToken_Handler(srv interface{}, ctx context.Context, dec
 		FullMethod: "/controller.AddService/NewAgentToken",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AddServiceServer).NewAgentToken(ctx, req.(*empty.Empty))
+		return srv.(AddServiceServer).NewAgentToken(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
