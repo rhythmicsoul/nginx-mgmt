@@ -25,8 +25,15 @@ func loadTLSCreds() (credentials.TransportCredentials, error) {
 		return nil, fmt.Errorf("failed to add custom ca cert")
 	}
 
+	serverCert, err := tls.LoadX509KeyPair("/home/rhythmic/certs/node1/fullchain.pem",
+		"/home/rhythmic/certs/node1/key.pem")
+	if err != nil {
+		return nil, err
+	}
+
 	config := &tls.Config{
-		RootCAs: certPool,
+		Certificates: []tls.Certificate{serverCert},
+		RootCAs:      certPool,
 	}
 
 	return credentials.NewTLS(config), nil

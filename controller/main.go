@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 
@@ -16,6 +19,16 @@ type server struct {
 }
 
 func loadTLSCreds() (credentials.TransportCredentials, error) {
+	caCert, err := ioutil.ReadFile("/home/rhythmic/certs/ca/rootCA.crt")
+	if err != nil {
+		return nil, err
+	}
+
+	certPool := x509.NewCertPool()
+	if !certPool.AppendCertsFromPEM(caCert) {
+		return nil, fmt.Errorf("failed to add custom ca cert")
+	}
+
 	serverCert, err := tls.LoadX509KeyPair("/home/rhythmic/certs/mbishnu.com/fullchain.pem",
 		"/home/rhythmic/certs/mbishnu.com/key.pem")
 	if err != nil {
@@ -24,7 +37,8 @@ func loadTLSCreds() (credentials.TransportCredentials, error) {
 
 	config := &tls.Config{
 		Certificates: []tls.Certificate{serverCert},
-		ClientAuth:   tls.NoClientCert,
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+		ClientCAs:    certPool,
 	}
 
 	return credentials.NewTLS(config), nil
