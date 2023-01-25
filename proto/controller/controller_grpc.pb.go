@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AddServiceClient interface {
 	NewAgentToken(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AgentToken, error)
+	BiT(ctx context.Context, opts ...grpc.CallOption) (AddService_BiTClient, error)
 }
 
 type addServiceClient struct {
@@ -38,11 +39,43 @@ func (c *addServiceClient) NewAgentToken(ctx context.Context, in *Empty, opts ..
 	return out, nil
 }
 
+func (c *addServiceClient) BiT(ctx context.Context, opts ...grpc.CallOption) (AddService_BiTClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AddService_ServiceDesc.Streams[0], "/controller.AddService/BiT", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &addServiceBiTClient{stream}
+	return x, nil
+}
+
+type AddService_BiTClient interface {
+	Send(*Test) error
+	Recv() (*Test, error)
+	grpc.ClientStream
+}
+
+type addServiceBiTClient struct {
+	grpc.ClientStream
+}
+
+func (x *addServiceBiTClient) Send(m *Test) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *addServiceBiTClient) Recv() (*Test, error) {
+	m := new(Test)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // AddServiceServer is the server API for AddService service.
 // All implementations must embed UnimplementedAddServiceServer
 // for forward compatibility
 type AddServiceServer interface {
 	NewAgentToken(context.Context, *Empty) (*AgentToken, error)
+	BiT(AddService_BiTServer) error
 	mustEmbedUnimplementedAddServiceServer()
 }
 
@@ -52,6 +85,9 @@ type UnimplementedAddServiceServer struct {
 
 func (UnimplementedAddServiceServer) NewAgentToken(context.Context, *Empty) (*AgentToken, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method NewAgentToken not implemented")
+}
+func (UnimplementedAddServiceServer) BiT(AddService_BiTServer) error {
+	return status.Errorf(codes.Unimplemented, "method BiT not implemented")
 }
 func (UnimplementedAddServiceServer) mustEmbedUnimplementedAddServiceServer() {}
 
@@ -84,6 +120,32 @@ func _AddService_NewAgentToken_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AddService_BiT_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(AddServiceServer).BiT(&addServiceBiTServer{stream})
+}
+
+type AddService_BiTServer interface {
+	Send(*Test) error
+	Recv() (*Test, error)
+	grpc.ServerStream
+}
+
+type addServiceBiTServer struct {
+	grpc.ServerStream
+}
+
+func (x *addServiceBiTServer) Send(m *Test) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *addServiceBiTServer) Recv() (*Test, error) {
+	m := new(Test)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // AddService_ServiceDesc is the grpc.ServiceDesc for AddService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -96,6 +158,13 @@ var AddService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AddService_NewAgentToken_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "controller.proto",
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "BiT",
+			Handler:       _AddService_BiT_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
+	Metadata: "proto/controller/controller.proto",
 }

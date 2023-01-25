@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"time"
@@ -39,6 +40,37 @@ func loadTLSCreds() (credentials.TransportCredentials, error) {
 	return credentials.NewTLS(config), nil
 }
 
+func reload(n controller.AddService_BiTClient) {
+	go func() {
+		for {
+			in, err := n.Recv()
+			if err == io.EOF {
+				return
+			}
+			if err != nil {
+				log.Fatalf("Stream failed: %v", err)
+			}
+			log.Println(in)
+			// close(w)
+		}
+	}()
+	go func() {
+		d := &controller.Test{
+			Name: "version",
+			Age:  22,
+			Add:  "ch",
+		}
+		for {
+			err1 := n.Send(d)
+			if err1 != nil {
+				log.Fatalf("test %v", err1)
+			}
+			time.Sleep(1 * time.Second)
+		}
+	}()
+	// n.CloseSend()
+}
+
 func main() {
 	tlsCreds, err := loadTLSCreds()
 	if err != nil {
@@ -60,4 +92,13 @@ func main() {
 
 	r, _ := c.NewAgentToken(ctx, &controller.Empty{})
 	log.Printf("the token is: %s", r.GetToken())
+
+	n, _ := c.BiT(context.Background())
+	reload(n)
+
+	a, _ := c.NewAgentToken(ctx, &controller.Empty{})
+	log.Printf("the token is: %s", a.GetToken())
+	for {
+		time.Sleep(100 * time.Second)
+	}
 }

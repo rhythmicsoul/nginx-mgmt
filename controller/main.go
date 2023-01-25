@@ -5,9 +5,12 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net"
+	"os"
+	"strconv"
 
 	"github.com/rhythmicsoul/nginx-mgmt/proto/controller"
 	"google.golang.org/grpc"
@@ -47,6 +50,36 @@ func loadTLSCreds() (credentials.TransportCredentials, error) {
 func (s *server) NewAgentToken(ctx context.Context, req *controller.Empty) (*controller.AgentToken, error) {
 	log.Printf("est")
 	return &controller.AgentToken{Token: "an agent token"}, nil
+}
+
+func (s *server) BiT(stream controller.AddService_BiTServer) error {
+	for {
+		in, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		if in.Name == "version" {
+			dat, _ := os.ReadFile("../tmp/version")
+			ver, _ := strconv.Atoi(string(dat))
+			stream.Send(
+				&controller.Test{
+					Name: string(dat),
+					Age:  int32(ver),
+					Add:  "nginx",
+				})
+			continue
+		}
+
+		log.Println(in)
+		stream.Send(&controller.Test{
+			Name: "bishnu",
+			Age:  20,
+			Add:  "Baikuntha",
+		})
+	}
 }
 
 func main() {
